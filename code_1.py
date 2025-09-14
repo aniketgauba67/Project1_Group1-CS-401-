@@ -2,6 +2,7 @@ import math
 import string
 import sys
 import fileinput
+import time
 
 # file format:
 # candidates(c) voters(v)
@@ -17,9 +18,7 @@ import fileinput
 # B A C 
 # A B C 
 
-candidates = []
-voters = 0
-ballots = [[]]
+start_time = time.time()
 
 ballots_ex = [
     ["A", "B", "C"],
@@ -29,10 +28,7 @@ ballots_ex = [
     ["A", "B", "C"]
 ]
 
-def readFromSTDIN(filename):
-    global candidates
-    global voters
-    global ballots
+def readFromSTDIN(filename, candidates):
     
     if filename:    
         with open(filename, 'r') as f:
@@ -42,13 +38,12 @@ def readFromSTDIN(filename):
         
     cand_num, voters = map(int, lines[0].split())
     ballots = [line.split() for line in lines[1:]]
-    print(cand_num, voters, ballots)
+    # print(cand_num, voters, ballots)
 
     for i in range(cand_num):
         candidates.append(chr(i + 65))
 
-readFromSTDIN("sample.txt")
-print("There are: " + str(candidates) + " candidates.")
+    return ballots
 
 def pairwise(ballots, a, b):
     # input: 
@@ -66,11 +61,11 @@ def pairwise(ballots, a, b):
 
     return a_greater_b, b_greater_a
 
-print(pairwise(ballots, "A", "B"))
-
-# results = {("A", "B"): (4, 1)} for efficiency ? or {("A", "B"): 3}
-
 def condorcet_calculation(ballots, candidates):
+    # input: 
+        # ballots
+        # candidates
+    # returns a dictoniary with a pair of candidate and pairwise count
     results = {}
     list_size = len(candidates)
     curr_index = 0
@@ -85,7 +80,7 @@ def condorcet_calculation(ballots, candidates):
         #             results[(candidates[c], candidates[c + 2])] = pairwise(ballots, candidates[c], candidates[c + 2])
     print(results)
 
-condorcet_calculation(ballots, candidates)
+    return results
 
 def dodgson_score(candidate, all_candidates, ballots):
     # input: 
@@ -93,10 +88,10 @@ def dodgson_score(candidate, all_candidates, ballots):
         # all_candidates: list of all candidates to loop through (opponents)
         # ballots: formated .txt file
     # output: dodgson score for the current candidate
-    res = []
+    res = 0 
     swaps = 0
 
-    for opponent in opponents: # handles the current opponent
+    for opponent in all_candidates: # handles the current opponent
         # A vs A
         if candidate == opponent:
             continue 
@@ -107,12 +102,47 @@ def dodgson_score(candidate, all_candidates, ballots):
             # a swap gives one to candidate, takes one from opponent
             needed = int(diff / 2) + 1
 
+            swap_history = []
             for ballot in ballots: # handles the current loss
                 # smaller index = more preferred
                 # diff in index = swaps needed
                 if ballot.index(opponent) < ballot.index(candidate):
                     swaps = ballot.index(candidate) - ballot.index(opponent)
-                    res.append(swaps)
-    return min(res)
+                    swap_history.append(swaps)
+            
+            swap_history.sort()
+            cheapest_history = swap_history[:needed]
+            res += sum(cheapest_history)
+
+    return res
     
+def main():
+    filename = input("Please enter the name of the file you're observing: ")
+
+    candidates = []
+    ballots = [[]]
+
+    ballots = readFromSTDIN(filename, candidates)
     
+    condorcet_calculation(ballots, candidates)
+    
+    winner = None
+    min_score = 0
+    min_holder = None
+    for c in candidates:
+        curr_score = dodgson_score(c, candidates, ballots)
+        if curr_score == 0:
+            winner = c
+        elif curr_score < min_score:
+            min_score = curr_score
+            min_holder = c
+
+        print(c + " has a Dodgson's Score of " + str(curr_score))
+
+    if winner:
+        print("The Condorcet, and therefore Dodgson's winner, is " + winner + ".")
+    else:
+        print("The Dodgson's winner is " + min_holder + " with a score of " + str(min_score) + ".")
+
+main()
+print("--- %s seconds ---" % (time.time() - start_time))
