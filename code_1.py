@@ -127,7 +127,7 @@ def main():
     condorcet_calculation(ballots, candidates)
     
     winner = None
-    min_score = 0
+    min_score = 999
     min_holder = None
     for c in candidates:
         curr_score = dodgson_score(c, candidates, ballots)
