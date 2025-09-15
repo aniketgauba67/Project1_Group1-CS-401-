@@ -18,6 +18,7 @@ import time
 # B A C 
 # A B C 
 
+voters = 0
 start_time = time.time()
 
 ballots_ex = [
@@ -30,6 +31,8 @@ ballots_ex = [
 
 def readFromSTDIN(filename, candidates):
     
+    global voters
+
     if filename:    
         with open(filename, 'r') as f:
             lines = f.read().strip().splitlines()
@@ -91,6 +94,8 @@ def dodgson_score(candidate, all_candidates, ballots):
     res = 0 
     swaps = 0
 
+    # needed = int(voters/2) + 1
+
     for opponent in all_candidates: # handles the current opponent
         # A vs A
         if candidate == opponent:
@@ -100,6 +105,7 @@ def dodgson_score(candidate, all_candidates, ballots):
             diff = o_votes - c_votes
             # needed to swap (add here)
             # a swap gives one to candidate, takes one from opponent
+            # needed = needed - diff - 1
             needed = int(diff / 2) + 1
 
             swap_history = []
@@ -110,6 +116,8 @@ def dodgson_score(candidate, all_candidates, ballots):
                     swaps = ballot.index(candidate) - ballot.index(opponent)
                     swap_history.append(swaps)
             
+            # print(str(swap_history) + " for " + str(candidate))
+
             swap_history.sort()
             cheapest_history = swap_history[:needed]
             res += sum(cheapest_history)
@@ -128,21 +136,24 @@ def main():
     
     winner = None
     min_score = 999
-    min_holder = None
+    min_holder = []
     for c in candidates:
         curr_score = dodgson_score(c, candidates, ballots)
         if curr_score == 0:
             winner = c
+        elif curr_score == min_score:
+            min_holder.append(c)
         elif curr_score < min_score:
+            min_holder.clear()
             min_score = curr_score
-            min_holder = c
+            min_holder.append(c)
 
         print(c + " has a Dodgson's Score of " + str(curr_score))
 
     if winner:
         print("The Condorcet, and therefore Dodgson's winner, is " + winner + ".")
     else:
-        print("The Dodgson's winner is " + min_holder + " with a score of " + str(min_score) + ".")
+        print("The Dodgson's winner(s) is " + str(min_holder) + " with a score of " + str(min_score) + ".")
 
 main()
 print("--- %s seconds ---" % (time.time() - start_time))
