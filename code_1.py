@@ -81,7 +81,6 @@ def condorcet_calculation(ballots, candidates):
         #     if (c + 2) < len(candidates):
         #         if not (candidates[c], candidates[c + 2]) in results:
         #             results[(candidates[c], candidates[c + 2])] = pairwise(ballots, candidates[c], candidates[c + 2])
-    print(results)
 
     return results
 
