@@ -140,6 +140,7 @@ def main():
         curr_score = dodgson_score(c, candidates, ballots)
         if curr_score == 0:
             winner = c
+            break
         elif curr_score == min_score:
             min_holder.append(c)
         elif curr_score < min_score:
@@ -150,7 +151,7 @@ def main():
         print(c + " has a Dodgson's Score of " + str(curr_score))
 
     if winner:
-        print("The Condorcet, and therefore Dodgson's winner, is " + winner + ".")
+        print("The Condorcet, and therefore Dodgson's, winner is " + winner + ".")
     else:
         print("The Dodgson's winner(s) is " + str(min_holder) + " with a score of " + str(min_score) + ".")
 
