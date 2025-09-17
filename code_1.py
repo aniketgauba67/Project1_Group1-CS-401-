@@ -3,6 +3,7 @@ import string
 import sys
 import fileinput
 import time
+from collections import defaultdict
 
 # file format:
 # candidates(c) voters(v)
@@ -64,23 +65,18 @@ def pairwise(ballots, a, b):
 
     return a_greater_b, b_greater_a
 
-def condorcet_calculation(ballots, candidates):
+def weighted_majority_graph(ballots, candidates):
     # input: 
         # ballots
         # candidates
     # returns a dictoniary with a pair of candidate and pairwise count
-    results = {}
+    results = defaultdict(dict)
     list_size = len(candidates)
     curr_index = 0
     for c in range(len(candidates) - 1):
         for c1 in range(1, len(candidates)):
             if c + c1 < len(candidates):
-                results[(candidates[c], candidates[c + c1])] = pairwise(ballots, candidates[c], candidates[c + c1])
-        # curr_index += 1
-        # while curr_index < list_size:
-        #     if (c + 2) < len(candidates):
-        #         if not (candidates[c], candidates[c + 2]) in results:
-        #             results[(candidates[c], candidates[c + 2])] = pairwise(ballots, candidates[c], candidates[c + 2])
+                results[candidates[c]][candidates[c + c1]] = pairwise(ballots, candidates[c], candidates[c + c1])
 
     return results
 
@@ -130,8 +126,6 @@ def main():
     ballots = [[]]
 
     ballots = readFromSTDIN(filename, candidates)
-    
-    condorcet_calculation(ballots, candidates)
     
     winner = None
     min_score = 999
