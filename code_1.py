@@ -20,7 +20,6 @@ from collections import defaultdict
 # A B C 
 
 voters = 0
-start_time = time.time()
 
 ballots_ex = [
     ["A", "B", "C"],
@@ -69,18 +68,28 @@ def weighted_majority_graph(ballots, candidates):
     # input: 
         # ballots
         # candidates
-    # returns a dictoniary with a pair of candidate and pairwise count
+    # returns a dictionary of dictionaries that contains data for all pairwise operations
     results = defaultdict(dict)
     list_size = len(candidates)
     curr_index = 0
     for c in range(len(candidates) - 1):
         for c1 in range(1, len(candidates)):
-            if c + c1 < len(candidates):
-                results[candidates[c]][candidates[c + c1]] = pairwise(ballots, candidates[c], candidates[c + c1])
+            if c != c1:
+                candidate_a = candidates[c]
+                candidate_b = candidates[c1]
+                a_wins, b_wins = pairwise(ballots, candidate_a, candidate_b)
+                results[candidate_a][candidate_b] = (a_wins, b_wins)
+                results[candidate_b][candidate_a] = (b_wins, a_wins)
+    #         if c + c1 < len(candidates):
+    #             results[candidates[c]][candidates[c + c1]] = pairwise(ballots, candidates[c], candidates[c + c1])
 
     return results
 
-def dodgson_score(candidate, all_candidates, ballots):
+def print_graph(graph):
+    for k, v in graph.items():
+        print(f"{k}: {v}")
+
+def dodgson_score(candidate, all_candidates, ballots, graph):
     # input: 
         # candidate: current candidate being check rn
         # all_candidates: list of all candidates to loop through (opponents)
@@ -95,7 +104,7 @@ def dodgson_score(candidate, all_candidates, ballots):
         # A vs A
         if candidate == opponent:
             continue 
-        c_votes, o_votes = pairwise(ballots, candidate, opponent)
+        c_votes, o_votes = graph[candidate][opponent]
         if c_votes < o_votes:
             diff = o_votes - c_votes
             # needed to swap (add here)
@@ -119,19 +128,26 @@ def dodgson_score(candidate, all_candidates, ballots):
 
     return res
     
+start_time = 0
+
 def main():
     filename = input("Please enter the name of the file you're observing: ")
+    global start_time
+    start_time = time.time()
 
     candidates = []
     ballots = [[]]
 
     ballots = readFromSTDIN(filename, candidates)
+
+    graph = weighted_majority_graph(ballots, candidates)
+    print_graph(graph)
     
     winner = None
     min_score = 999
     min_holder = []
     for c in candidates:
-        curr_score = dodgson_score(c, candidates, ballots)
+        curr_score = dodgson_score(c, candidates, ballots, graph)
         if curr_score == 0:
             winner = c
             break
