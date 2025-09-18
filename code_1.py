@@ -95,13 +95,9 @@ def dodgson_score(candidate, all_candidates, ballots, graph):
         # all_candidates: list of all candidates to loop through (opponents)
         # ballots: formated .txt file
     # output: dodgson score for the current candidate
-    res = 0 
-    swaps = 0
-
-    # needed = int(voters/2) + 1
+    total_swaps = 0
 
     for opponent in all_candidates: # handles the current opponent
-        # A vs A
         if candidate == opponent:
             continue 
         c_votes, o_votes = graph[candidate][opponent]
@@ -109,25 +105,24 @@ def dodgson_score(candidate, all_candidates, ballots, graph):
             diff = o_votes - c_votes
             # needed to swap (add here)
             # a swap gives one to candidate, takes one from opponent
-            # needed = needed - diff - 1
-            needed = int(diff / 2) + 1
-
-            swap_history = []
-            for ballot in ballots: # handles the current loss
-                # smaller index = more preferred
-                # diff in index = swaps needed
-                if ballot.index(opponent) < ballot.index(candidate):
-                    swaps = ballot.index(candidate) - ballot.index(opponent)
-                    swap_history.append(swaps)
+            swaps_needed = (diff / 2) + 1
             
-            # print(str(swap_history) + " for " + str(candidate))
+            swap_costs = []
+            for ballot in ballots: # handles the current loss
+                candidate_index = ballot.index(candidate)
+                opponent_index = ballot.index(opponent)
+                # only care about ballots where opponent is preferred over candidate
+                if opponent_index < candidate_index:
+                    # cost to move candidate just above opponent
+                    cost = candidate_index - opponent_index
+                    swap_costs.append(cost)
+            
+            # sort and take the cheapest swaps needed
+            swap_costs.sort()
+            total_swaps += sum(swap_costs[:swaps_needed])
 
-            swap_history.sort()
-            cheapest_history = swap_history[:needed]
-            res += sum(cheapest_history)
+    return total_swaps
 
-    return res
-    
 start_time = 0
 
 def main():
