@@ -3,6 +3,7 @@ import string
 import sys
 import fileinput
 import time
+import heapq
 from collections import defaultdict
 
 # file format:
@@ -105,9 +106,10 @@ def dodgson_score(candidate, all_candidates, ballots, graph):
             diff = o_votes - c_votes
             # needed to swap (add here)
             # a swap gives one to candidate, takes one from opponent
-            swaps_needed = (diff / 2) + 1
+            swaps_needed = int((diff / 2) + 1)
             
-            swap_costs = []
+            # Use a min-heap to efficiently find the cheapest swaps
+            swap_heap = []
             for ballot in ballots: # handles the current loss
                 candidate_index = ballot.index(candidate)
                 opponent_index = ballot.index(opponent)
@@ -115,11 +117,11 @@ def dodgson_score(candidate, all_candidates, ballots, graph):
                 if opponent_index < candidate_index:
                     # cost to move candidate just above opponent
                     cost = candidate_index - opponent_index
-                    swap_costs.append(cost)
+                    heapq.heappush(swap_heap, cost)
             
-            # sort and take the cheapest swaps needed
-            swap_costs.sort()
-            total_swaps += sum(swap_costs[:swaps_needed])
+            # Extract the cheapest swaps needed using the heap
+            for _ in range(min(swaps_needed, len(swap_heap))):
+                total_swaps += heapq.heappop(swap_heap)
 
     return total_swaps
 
